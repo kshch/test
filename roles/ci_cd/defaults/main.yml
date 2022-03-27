@@ -1,0 +1,19 @@
+---
+# defaults file for ci_cd
+
+podman_compose_cfg_dir: "/etc/podman-compose"
+jenkins_dockerfile_template: "jenkins/Dockerfile"
+jenkins_ref: "/usr/share/jenkins/ref"
+nginx_conf_template: "nginx/nginx.conf"
+nginx_conf_d_templates:
+  - "nginx/conf.d/jenkins.example.com.conf"
+  - "nginx/conf.d/nexus.example.com.conf"
+nginx_ssl_certificates:
+  - "nginx/ssl/dhparam.pem"
+  - "nginx/ssl/jenkins.example.com.crt"
+  - "nginx/ssl/jenkins.example.com.key"
+  - "nginx/ssl/nexus.example.com.crt"
+  - "nginx/ssl/nexus.example.com.key"
+jenkins_configuration:
+  - "jenkins/config.xml"
+  - "jenkins/ci_cd_job.xml"

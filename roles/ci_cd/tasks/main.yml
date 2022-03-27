@@ -1,0 +1,70 @@
+---
+# tasks file for ci_cd
+
+- name: "Install dependencies"
+  package:
+    name: "{{ item }}"
+  loop:
+    - podman
+    - podman-compose
+    - podman-remote
+    - podman-plugins
+
+- name: "Create directories for config files"
+  file:
+    name: "{{ podman_compose_cfg_dir }}/{{ item }}"
+    state: directory
+  loop:
+    - "nginx/conf.d"
+    - "nginx/ssl"
+    - "jenkins"
+
+- name: "Create podman compose file from template"
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ podman_compose_cfg_dir }}/docker-compose.yml"
+
+- name: "Create jenkins Dockerfile from template"
+  template:
+    src: "{{ jenkins_dockerfile_template }}.j2"
+    dest: "{{ podman_compose_cfg_dir }}/jenkins/Dockerfile"
+
+- name: "Create nginx main configuration from template"
+  template:
+    src: "{{ nginx_conf_template }}.j2"
+    dest: "{{ podman_compose_cfg_dir }}/nginx/nginx.conf"
+
+- name: "Create nginx site configuration from templates"
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ podman_compose_cfg_dir }}/nginx/conf.d/{{ item | basename }}"
+  loop: "{{ nginx_conf_d_templates }}"
+
+- name: "Copy nginx SSL certificate"
+  copy:
+    src: "{{ item }}"
+    dest: "{{ podman_compose_cfg_dir }}/nginx/ssl/{{ item | basename }}"
+  loop: "{{ nginx_ssl_certificates }}"
+
+- name: "Copy jenkins configuration"
+  copy:
+    src: "{{ item }}"
+    dest: "{{ podman_compose_cfg_dir }}/jenkins/{{ item | basename }}"
+  loop: "{{ jenkins_configuration }}"
+
+- name: Add IP address of all hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "0.0.0.0 jenkins.example.com nexus.example.com"
+
+- name: "Stop all compose services"
+  docker_compose:
+    project_src: "{{ podman_compose_cfg_dir }}"
+    state: absent
+
+- name: "Start all compose services"
+  docker_compose:
+    project_src: "{{ podman_compose_cfg_dir }}"
+    state: present
+    restarted: yes
+    build: yes

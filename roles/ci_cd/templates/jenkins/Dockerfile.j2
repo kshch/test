@@ -1,0 +1,19 @@
+FROM jenkins/jenkins:2.340-alpine
+
+ENV JENKINS_USER=admin \
+JENKINS_PASS=admin \
+JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+
+COPY config.xml {{ jenkins_ref }}/config.xml.override
+RUN /usr/local/bin/install-plugins.sh git maven-plugin startup-trigger-plugin
+
+USER root
+
+RUN apk add maven \
+&& apk add git \
+&& mkdir -p {{ jenkins_ref }}/workspace/ci_cd_job \
+&& mkdir -p {{ jenkins_ref }}/jobs/ci_cd_job \
+&& mkdir -p {{ jenkins_ref }}/jobs/ci_cd_job/latest/ \
+&& mkdir -p {{ jenkins_ref }}/jobs/ci_cd_job/builds/1/
+
+COPY ci_cd_job.xml {{ jenkins_ref }}/jobs/ci_cd_job/config.xml

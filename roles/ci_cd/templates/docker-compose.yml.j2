@@ -1,0 +1,38 @@
+---
+version: '3.9'
+
+services:
+
+  jenkins:
+    build: jenkins/
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    networks:
+      - cicd
+
+  nexus:
+    image: sonatype/nexus:2.15.1-02
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    networks:
+      - cicd
+
+  nginx:
+    image: nginx:1.21.6-alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - {{ podman_compose_cfg_dir }}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - {{ podman_compose_cfg_dir }}/nginx/conf.d:/etc/nginx/conf.d:ro
+      - {{ podman_compose_cfg_dir }}/nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - cicd
+
+networks:
+  cicd: {}

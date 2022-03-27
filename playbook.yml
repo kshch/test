@@ -1,0 +1,7 @@
+---
+- name: CI CD
+  hosts: all
+
+  roles:
+    - role: "ci_cd"
+      become: "yes"
